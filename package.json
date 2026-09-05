@@ -1,6 +1,6 @@
 {
   "name": "iksn-rebuild",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "private": true,
   "description": "IKSN fictional institutional prototype with Railway proxy handling, random server-logged OTP, resend OTP UI, consented location, messaging and camera verification UI.",
   "main": "server.js",
