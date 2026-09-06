@@ -1,0 +1,105 @@
+/* IKSN motion layer — additive only.
+   Loaded after styles.css. Nothing here removes or restructures existing rules;
+   it refines hover/press states and adds a small set of new components that
+   effects.js injects (hero visual, nav indicator, ripple, long-press ring).
+   All of it is neutralized by the existing global
+   @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+   rule already in styles.css. */
+
+/* ---------- Touch hygiene ---------- */
+.btn,.nav-btn,.card.clickable,.thread-item,.person-card,.admin-portal-trigger,.pager button{
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+
+/* ---------- Buttons: refined hover / press + ripple host ---------- */
+.btn{position:relative;overflow:hidden;transition:transform .2s cubic-bezier(.2,.8,.3,1),box-shadow .2s ease,border-color .2s ease,background-color .2s ease}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.26)}
+.btn:active{transform:translateY(0) scale(.98);box-shadow:0 3px 10px rgba(0,0,0,.22)}
+.iksn-ripple{position:absolute;border-radius:50%;transform:scale(0);background:rgba(255,255,255,.32);pointer-events:none;animation:iksnRipple .55s ease-out forwards}
+.btn.primary .iksn-ripple{background:rgba(0,0,0,.16)}
+@keyframes iksnRipple{to{transform:scale(1);opacity:0}}
+@media (hover:none){
+  .btn:hover{transform:none;box-shadow:none}
+  .btn:active,.card.clickable:active,.nav-btn:active,.thread-item:active,.person-card:active{transform:scale(.98)}
+}
+
+/* ---------- Long-press progress ring (sensitive actions: .btn.danger) ----------
+   Cosmetic + haptic only — native click still fires on release at any hold length,
+   so TERMINATE/REJECT/REVOKE keep working exactly as before with a plain tap. */
+.btn.danger{position:relative}
+.btn.danger::before{
+  content:"";position:absolute;inset:-3px;border-radius:inherit;padding:2px;pointer-events:none;
+  background:conic-gradient(var(--danger) calc(var(--hold,0) * 3.6deg),transparent 0);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  opacity:0;transition:opacity .18s ease;
+}
+.btn.danger.holding::before{opacity:1}
+.btn.danger.holding{transform:scale(.97)}
+.btn.danger.armed{box-shadow:0 0 0 4px rgba(181,106,110,.25)}
+
+/* ---------- Card / row entrance with stagger ---------- */
+.mo-reveal{animation:iksnCardIn .5s cubic-bezier(.16,.9,.3,1) both;animation-delay:calc(var(--i,0) * 55ms)}
+@keyframes iksnCardIn{from{opacity:0;transform:translateY(12px);filter:blur(2px)}to{opacity:1;transform:none;filter:blur(0)}}
+.card{transition:border-color .25s ease,box-shadow .25s ease,transform .25s ease}
+.card.clickable:hover{box-shadow:0 14px 34px rgba(0,0,0,.24)}
+.card.stat:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(0,0,0,.22)}
+
+/* ---------- Sidebar active-item sliding indicator ---------- */
+.nav-indicator{position:absolute;top:0;left:6px;right:6px;height:40px;border-radius:9px;background:#171717;border:1px solid var(--line2);pointer-events:none;opacity:0;transition:transform .32s cubic-bezier(.2,.9,.25,1),opacity .22s ease}
+.nav-btn{position:relative;z-index:1;transition:background-color .18s ease,color .18s ease}
+.nav-btn.active,.nav-btn.active:hover{background:transparent}
+
+/* ---------- Loading / processing notices ---------- */
+.iksn-loading{display:inline-flex;align-items:center;gap:10px;font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.iksn-loading .bar{position:relative;width:110px;max-width:30vw;height:2px;background:#242424;overflow:hidden;border-radius:2px}
+.iksn-loading .bar::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:40%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:iksnScanBar 1.05s ease-in-out infinite}
+@keyframes iksnScanBar{0%{left:-40%}100%{left:100%}}
+
+/* ---------- Form focus ---------- */
+.input:focus,.select:focus,.textarea:focus{box-shadow:0 0 0 3px rgba(176,139,90,.14)}
+
+/* ---------- Icon micro-interactions (hover only, triggered by parent .btn/.nav-btn) ---------- */
+.icon svg{transition:transform .22s cubic-bezier(.3,.6,.4,1.2),filter .22s ease}
+.btn:hover .icon-camera svg{animation:iksnLensPulse 1.1s ease-in-out infinite}
+.btn:hover .icon-search svg{transform:translateX(1px)}
+.btn:hover .icon-refresh svg{transform:rotate(55deg)}
+.btn:hover .icon-send svg{transform:translate(2px,-1px)}
+.btn:hover .icon-logout svg{transform:translateX(2px)}
+.btn:hover .icon-upload svg{transform:translateY(-1px)}
+.btn:hover .icon-shield svg,.admin-portal-trigger:hover .icon-shield svg{filter:drop-shadow(0 0 3px rgba(176,139,90,.55))}
+.btn:hover .icon-lock svg{transform:translateY(-1px)}
+.btn:hover .icon-check svg{transform:scale(1.12)}
+@keyframes iksnLensPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+/* ---------- Hero visual (welcome / landing screen) ---------- */
+.iksn-hero-visual{position:absolute;top:50%;right:-70px;width:360px;height:360px;transform:translateY(-50%);z-index:0;opacity:.55;will-change:transform}
+.iksn-hero-visual svg{width:100%;height:100%;overflow:visible}
+.iksn-hero-visual .ring-outer{transform-box:fill-box;transform-origin:center;animation:iksnRotate 70s linear infinite}
+.iksn-hero-visual .ring-inner{transform-box:fill-box;transform-origin:center;animation:iksnRotateRev 46s linear infinite}
+.iksn-hero-visual .core{transform-box:fill-box;transform-origin:center;animation:iksnCoreFloat 6s ease-in-out infinite}
+@keyframes iksnRotate{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes iksnRotateRev{from{transform:rotate(0)}to{transform:rotate(-360deg)}}
+@keyframes iksnCoreFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@media(max-width:1200px){.iksn-hero-visual{width:280px;height:280px;right:-80px;opacity:.4}}
+@media(max-width:760px){.iksn-hero-visual{display:none}}
+
+/* ---------- Ambient strip (auth screens' side panel) ---------- */
+.auth-aside{position:relative;overflow:hidden}
+.iksn-ambient-strip{position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.5}
+.iksn-ambient-strip .a-node{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--accent);animation:iksnNodeFloat 7s ease-in-out infinite}
+.iksn-ambient-strip .a-node:nth-child(2){animation-delay:.8s}
+.iksn-ambient-strip .a-node:nth-child(3){animation-delay:1.6s}
+.iksn-ambient-strip .a-line{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(176,139,90,.35),transparent);animation:iksnScanX 9s ease-in-out infinite}
+@keyframes iksnNodeFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes iksnScanX{0%,100%{opacity:.15;transform:translateX(-6%)}50%{opacity:.5;transform:translateX(6%)}}
+.auth-aside>*{position:relative;z-index:1}
+
+/* ---------- Pause persistent ambient loops when the tab is hidden ---------- */
+html.iksn-paused body::before,
+html.iksn-paused body::after,
+html.iksn-paused .iksn-hero-visual .ring-outer,
+html.iksn-paused .iksn-hero-visual .ring-inner,
+html.iksn-paused .iksn-hero-visual .core,
+html.iksn-paused .iksn-ambient-strip .a-node,
+html.iksn-paused .iksn-ambient-strip .a-line{animation-play-state:paused!important}
