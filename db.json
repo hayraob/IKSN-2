@@ -1,0 +1,32 @@
+{
+  "users": [
+    {
+      "id": "usr_admin_001",
+      "name": "Administrator",
+      "email": "admin@novanox.local",
+      "passwordHash": {
+        "salt": "4n8CPQNvzxUMTNOA4LdcNw==",
+        "key": "u4/lPgTXGJf79AVc/lnRci/M8t2azCVbYOzu4JSEwFd3DQOfatT0M8PGk+5VstV0rTuUqAiwP8k/TTVkJ0nvUg=="
+      },
+      "role": "admin",
+      "createdAt": "2026-09-21T10:00:00.000Z",
+      "lastLoginAt": null,
+      "isOnline": false
+    }
+  ],
+  "activity": [],
+  "news": [
+    {
+      "id": "news_001",
+      "title": "Welcome to Novanox",
+      "slug": "welcome-to-novanox",
+      "excerpt": "Portal baru dengan pengalaman yang cepat, modern, dan terhubung.",
+      "content": "Selamat datang di Novanox. Admin dapat mengelola berita, memantau aktivitas akun, dan berkomunikasi langsung dengan customer secara real time.",
+      "cover": "",
+      "createdAt": "2026-09-21T10:00:00.000Z",
+      "published": true,
+      "author": "Administrator"
+    }
+  ],
+  "messages": []
+}
