@@ -1,0 +1,119 @@
+CREATE TABLE IF NOT EXISTS users (
+  id BIGSERIAL PRIMARY KEY,
+  username VARCHAR(40) NOT NULL UNIQUE,
+  email VARCHAR(160) NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  role VARCHAR(20) NOT NULL CHECK (role IN ('reader','creator','admin')),
+  bio TEXT NOT NULL DEFAULT '',
+  interests TEXT[] NOT NULL DEFAULT '{}',
+  avatar_url TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id UUID PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  action VARCHAR(40) NOT NULL,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS activity_logs_created_idx ON activity_logs(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS quotes (
+  id BIGSERIAL PRIMARY KEY,
+  author_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title VARCHAR(180) NOT NULL,
+  description VARCHAR(500) NOT NULL DEFAULT '',
+  content TEXT NOT NULL,
+  image_url TEXT NOT NULL DEFAULT '',
+  music_url TEXT NOT NULL DEFAULT '',
+  music_title VARCHAR(180) NOT NULL DEFAULT '',
+  music_artist VARCHAR(180) NOT NULL DEFAULT '',
+  categories TEXT[] NOT NULL DEFAULT '{}',
+  published BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS quotes_created_idx ON quotes(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS quote_likes (
+  quote_id BIGINT NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (quote_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS quote_reposts (
+  quote_id BIGINT NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (quote_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS quote_comments (
+  id BIGSERIAL PRIMARY KEY,
+  quote_id BIGINT NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  body VARCHAR(800) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS quote_comments_quote_idx ON quote_comments(quote_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS follows (
+  follower_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  following_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (follower_id, following_id),
+  CHECK (follower_id <> following_id)
+);
+
+CREATE TABLE IF NOT EXISTS conversations (
+  id BIGSERIAL PRIMARY KEY,
+  user_a BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_b BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','accepted','declined')),
+  requested_by BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (user_a, user_b)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id BIGSERIAL PRIMARY KEY,
+  conversation_id BIGINT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  body VARCHAR(2000) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS messages_conversation_idx ON messages(conversation_id, created_at ASC);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind VARCHAR(40) NOT NULL,
+  text TEXT NOT NULL,
+  link VARCHAR(255) NOT NULL DEFAULT '',
+  read_at TIMESTAMPTZ NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS notifications_user_idx ON notifications(user_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS news (
+  id BIGSERIAL PRIMARY KEY,
+  author_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title VARCHAR(180) NOT NULL,
+  body TEXT NOT NULL,
+  image_url TEXT NOT NULL DEFAULT '',
+  published BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS news_created_idx ON news(created_at DESC);
