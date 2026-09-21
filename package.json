@@ -1,0 +1,8 @@
+{
+  "name": "novanox-futuristic-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Modern black futuristic customer/admin portal with realtime chat. Zero runtime dependencies.",
+  "main": "server.js",
+  "scripts": {"start":"node server.js"}
+}
